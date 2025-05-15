@@ -37,7 +37,7 @@ Plug 'nvim-lua/plenary.nvim'
 
 " UI Enhancements
 Plug 'akinsho/bufferline.nvim'
-Plug 'rcarriga/nvim-notify', {'tag': 'v4.9.0'}
+Plug 'rcarriga/nvim-notify'
 Plug 'stevearc/dressing.nvim'
 
 " Terminal integration
@@ -49,7 +49,7 @@ Plug 'windwp/nvim-autopairs'
 Plug 'numToStr/Comment.nvim'
 
 " Git integration
-Plug 'lewis6991/gitsigns.nvim'
+Plug 'lewis6991/gitsigns.nvim', {'tag': 'v0.6' }
 Plug 'tpope/vim-fugitive'
 
 " Statusline & Winbar
@@ -107,12 +107,14 @@ nnoremap <leader>fb :Telescope buffers<CR>
 lua << EOF
 require("bufferline").setup{}
 EOF
+nnoremap <leader>n :bn<CR>
+nnoremap <leader>p :bp<CR>
 
 " ======================
 " Notify setup
 " ======================
 lua << EOF
-vim.notify = require("notify")
+#vim.notify = require("notify")
 EOF
 
 " ======================
