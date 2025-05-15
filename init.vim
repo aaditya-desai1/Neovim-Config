@@ -34,6 +34,7 @@ Plug 'nvim-tree/nvim-web-devicons'
 " Fuzzy finder + dependency
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 
 " UI Enhancements
 Plug 'akinsho/bufferline.nvim'
@@ -76,6 +77,12 @@ Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npm install', 'for': 'ma
 " Startup performance
 Plug 'lewis6991/impatient.nvim'
 
+" LSP and DevOps tools
+Plug 'neovim/nvim-lspconfig'
+Plug 'williamboman/mason.nvim'
+Plug 'williamboman/mason-lspconfig.nvim'
+Plug 'jose-elias-alvarez/null-ls.nvim'
+
 call plug#end()
 
 " ======================
@@ -96,6 +103,7 @@ nnoremap <leader>e :NvimTreeToggle<CR>
 " ======================
 lua << EOF
 require('telescope').setup{}
+require('telescope').load_extension('fzf')
 EOF
 nnoremap <leader>ff :Telescope find_files<CR>
 nnoremap <leader>fg :Telescope live_grep<CR>
@@ -114,7 +122,7 @@ nnoremap <leader>p :bp<CR>
 " Notify setup
 " ======================
 lua << EOF
-#vim.notify = require("notify")
+-- vim.notify = require("notify")
 EOF
 
 " ======================
@@ -136,8 +144,6 @@ require("toggleterm").setup{
 }
 EOF
 nnoremap <leader>t :ToggleTerm<CR>
-
-" Map ESC in terminal mode to Normal mode
 tnoremap <Esc> <C-\><C-n>
 
 " ======================
@@ -162,7 +168,7 @@ require('gitsigns').setup{}
 EOF
 
 " ======================
-" Lualine setup with navic
+" Lualine + Navic
 " ======================
 lua << EOF
 require('lualine').setup{
@@ -179,34 +185,6 @@ require('lualine').setup{
   },
 }
 require('nvim-navic').setup {
-  icons = {
-    File          = ' ',
-    Module        = ' ',
-    Namespace     = ' ',
-    Package       = ' ',
-    Class         = ' ',
-    Method        = ' ',
-    Property      = ' ',
-    Field         = ' ',
-    Constructor   = ' ',
-    Enum          = '練',
-    Interface     = '練',
-    Function      = ' ',
-    Variable      = ' ',
-    Constant      = ' ',
-    String        = ' ',
-    Number        = ' ',
-    Boolean       = '◩ ',
-    Array         = ' ',
-    Object        = ' ',
-    Key           = ' ',
-    Null          = 'ﳠ ',
-    EnumMember    = ' ',
-    Struct        = ' ',
-    Event         = ' ',
-    Operator      = ' ',
-    TypeParameter = ' ',
-  },
   highlight = true,
   separator = ' > ',
   depth_limit = 5,
@@ -234,7 +212,7 @@ require('auto-session').setup {
 EOF
 
 " ======================
-" Markdown Preview keymap (optional)
+" Markdown Preview keymap
 " ======================
 autocmd FileType markdown nnoremap <buffer> <leader>m :MarkdownPreviewToggle<CR>
 
@@ -243,16 +221,51 @@ autocmd FileType markdown nnoremap <buffer> <leader>m :MarkdownPreviewToggle<CR>
 " ======================
 lua << EOF
 require'nvim-treesitter.configs'.setup {
-  ensure_installed = { "c", "cpp", "lua", "python", "javascript", "typescript", "html", "css", "bash", "json", "markdown" },
-  highlight = {
-    enable = true,
+  ensure_installed = {
+    "c", "cpp", "lua", "python", "javascript", "typescript", "html", "css",
+    "bash", "json", "markdown", "yaml", "dockerfile", "hcl"
   },
-  indent = {
-    enable = true,
-  },
-  incremental_selection = {
-    enable = true,
-  },
+  highlight = { enable = true },
+  indent = { enable = true },
+  incremental_selection = { enable = true },
 }
 EOF
+
+" ======================
+" Mason + LSP setup
+" ======================
+lua << EOF
+require("mason").setup()
+require("mason-lspconfig").setup {
+  ensure_installed = { "bashls", "pyright", "yamlls", "jsonls", "dockerls", "terraformls", "marksman" },
+}
+
+local lspconfig = require("lspconfig")
+local servers = { "bashls", "pyright", "yamlls", "jsonls", "dockerls", "terraformls", "marksman" }
+
+for _, server in ipairs(servers) do
+  lspconfig[server].setup {}
+end
+EOF
+
+" ======================
+" null-ls setup (formatters, linters)
+" ======================
+lua << EOF
+local null_ls = require("null-ls")
+
+null_ls.setup({
+  sources = {
+    null_ls.builtins.formatting.prettier,
+    null_ls.builtins.formatting.black,
+    null_ls.builtins.formatting.shfmt,
+    null_ls.builtins.diagnostics.shellcheck,
+  },
+})
+EOF
+
+" ======================
+" Format buffer keymap
+" ======================
+nnoremap <leader>f :lua vim.lsp.buf.format({ async = true })<CR>
 
